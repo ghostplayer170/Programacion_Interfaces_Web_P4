@@ -3,41 +3,46 @@ import { Fragment } from "preact/jsx-runtime";
 import Axios from "npm:axios";
 import Lover from "../components/Lover.tsx";
 import { FreshContext, Handlers, PageProps } from "$fresh/server.ts";
-import { useState } from "preact/hooks";
 
 type LoverT = {
   _id: string;
-  foto: string;
+  photo: string;
 };
 
 type PokemonT = {
   _id: string;
-  imagen: string;
+  image: string;
 };
 
-const LoversPage = async (
-  props: PageProps<{ pageData: LoverT[] | PokemonT[] }>,
-) => {
-  const url = new URL(props.url);
-  const pagesection = url.pathname.slice(1);
-  const [getData, setData] = useState<LoverT[] | PokemonT[]>([]);
-  if (pagesection === "lovers") {
-    const getData = await Axios.get<LoverT[]>(
-      `https://lovers.deno.dev/`,
-    );
-    setData(getData.data);
-  } else if (pagesection === "pokemons") {
-    const getData = await Axios.get<PokemonT[]>(
-      `https://lospoquimones.deno.dev/`,
-    );
-    setData(getData.data);
-  } else if (pagesection === "superheroes") {
-    const getData = await Axios.get<PokemonT[]>(
-      `https://supermondongo.deno.dev/`,
-    );
-    setData(getData.data);
-  }
-  const lovers = getData;
+export const handler: Handlers = {
+  GET: async (
+    _req: Request,
+    ctx: FreshContext<unknown, { pageData: LoverT[] | PokemonT[] }>,
+  ) => {
+    const { pagesection } = ctx.params;
+    if (pagesection === "lovers") {
+      const getData = await Axios.get<LoverT[]>(
+        `https://lovers.deno.dev/`,
+      );
+      return ctx.render({ pageData: getData.data });
+    } else if (pagesection === "pokemons") {
+      const getData = await Axios.get<PokemonT[]>(
+        `https://lospoquimones.deno.dev/`,
+      );
+      return ctx.render({ pageData: getData.data });
+    } else if (pagesection === "superheroes") {
+      const getData = await Axios.get<PokemonT[]>(
+        `https://supermondongo.deno.dev/`,
+      );
+      return ctx.render({ pageData: getData.data });
+    } else {
+      return ctx.render({ pageData: [] });
+    }
+  },
+};
+
+const LoversPage = (props: PageProps<{ pageData: LoverT[] | PokemonT[] }>) => {
+  const lovers = props.data.pageData;
   const partLength = lovers.length / 3;
   const firstPart = lovers.slice(0, partLength);
   const secondPart = lovers.slice(partLength, partLength * 2);
@@ -55,32 +60,32 @@ const LoversPage = async (
       </div>
       <div class="columns">
         <div class="column column-reverse">
-          {secondPart.map((lover, n) => (
+          {secondPart.map((lover) => (
             <Lover
-              image={(lover as any).foto
-                ? (lover as LoverT).foto
-                : (lover as PokemonT).imagen}
-              key={n}
+              image={(lover as any).photo
+                ? (lover as LoverT).photo
+                : (lover as PokemonT).image}
+              key={lover._id}
             />
           ))}
         </div>
         <div class="column">
-          {firstPart.map((lover, n) => (
+          {firstPart.map((lover) => (
             <Lover
-              image={(lover as any).foto
-                ? (lover as LoverT).foto
-                : (lover as PokemonT).imagen}
-              key={n}
+              image={(lover as any).photo
+                ? (lover as LoverT).photo
+                : (lover as PokemonT).image}
+              key={lover._id}
             />
           ))}
         </div>
         <div class="column column-reverse">
-          {thirdPart.map((lover, n) => (
+          {thirdPart.map((lover) => (
             <Lover
-              image={(lover as any).foto
-                ? (lover as LoverT).foto
-                : (lover as PokemonT).imagen}
-              key={n}
+              image={(lover as any).photo
+                ? (lover as LoverT).photo
+                : (lover as PokemonT).image}
+              key={lover._id}
             />
           ))}
         </div>
